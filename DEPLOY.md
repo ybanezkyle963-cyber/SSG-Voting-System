@@ -194,6 +194,8 @@ git push
 ```
 
 **D2.** Deploying the change:
+- **This project is connected to the repository**, so a push to `main` is all it takes:
+  Vercel builds the commit and promotes it to production a minute or so later.
 - If you used **Route B1**, Vercel redeploys by itself within a minute.
 - If you used **Route B2**, run `npx vercel --prod --yes` again.
 
