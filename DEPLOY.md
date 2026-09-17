@@ -225,6 +225,16 @@ curl -s http://localhost:4000/api/status
 > `PORT` to something unexpected will bind there instead. Passing it explicitly always
 > works: `PORT=4000 node index.js`.
 
+> **Filling the box for a demo.** `node demo.js 140` reads the roster from
+> `data/election.db` and posts ballots over HTTP to `BASE`, which defaults to
+> `http://localhost:4000`. If your server is running on another port, point it there
+> explicitly — otherwise the ballots go to whatever is on 4000, and any voter whose
+> access code differs between two databases will fail to sign in:
+>
+> ```bash
+> BASE=http://localhost:4001 node demo.js 140
+> ```
+
 The original `web/` interface is served from the same origin, so opening
 <http://localhost:4000> gives you the plain interface straight from the server. To use
 the richer `client/` interface against this server, run its dev server — the proxy in
