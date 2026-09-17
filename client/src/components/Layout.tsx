@@ -129,6 +129,12 @@ export function Layout({ children }: { children: ReactNode }) {
           </p>
           <p className="mt-1">
             {mode === 'live' ? 'Connected to the election server.' : 'Running offline in this browser.'}
+            {__BUILD_COMMIT__ ? (
+              <>
+                {' '}
+                Built from commit <span className="numeric">{__BUILD_COMMIT__.slice(0, 7)}</span>.
+              </>
+            ) : null}
           </p>
         </div>
       </footer>

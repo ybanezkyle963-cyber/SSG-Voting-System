@@ -197,6 +197,24 @@ git push
 - If you used **Route B1**, Vercel redeploys by itself within a minute.
 - If you used **Route B2**, run `npx vercel --prod --yes` again.
 
+**D2a. If a push produces no deployment,** the repository is not really connected.
+A Git link can point at a repository that has since been deleted and re-created, and
+Vercel will keep the stale link and quietly deploy nothing. Check it with:
+
+```bash
+npx vercel git connect https://github.com/ybanezkyle963-cyber/SSG-Voting-System
+```
+
+If that fails with *"Make sure there aren't any typos and that you have access to the
+repository"*, the Vercel GitHub App cannot see the repository. Grant it at
+<https://github.com/settings/installations> — pick the Vercel app, **Configure**,
+**Repository access**, add this repository, save — then run the command again.
+
+**D2b. Which commit is live?** Each Vercel build stamps its commit into the page, at
+the bottom of every screen: *"Built from commit abc1234."* The line is absent in a
+local build, so if you can see it you are looking at a deployment, and you know which
+commit produced it.
+
 **D3.** To work on it locally at any time:
 
 ```bash
