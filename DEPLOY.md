@@ -213,7 +213,22 @@ node seed.js      # once: creates the database, roster, posts and candidates
 node index.js     # serves the API and the site on http://localhost:4000
 ```
 
-Then serve `client/dist` from the same origin as the API so the `/api/*` calls resolve,
-and put HTTPS in front of both. Before running anything real, work through the
+Quick check that it is up:
+
+```bash
+curl -s http://localhost:4000/api/status
+# {"open":true,"resultsPublished":false,"turnout":{...}}
+```
+
+> **If the server seems to vanish**, check `echo $PORT`. The server reads
+> `process.env.PORT` first and only falls back to 4000, so an environment that sets
+> `PORT` to something unexpected will bind there instead. Passing it explicitly always
+> works: `PORT=4000 node index.js`.
+
+The original `web/` interface is served from the same origin, so opening
+<http://localhost:4000> gives you the plain interface straight from the server. To use
+the richer `client/` interface against this server, run its dev server — the proxy in
+`client/vite.config.ts` forwards `/api` to port 4000 — or serve `client/dist` from the
+same origin as the API in production. Put HTTPS in front of both. Before running anything real, work through the
 *Before a real election* checklist in `README.md` — HTTPS, hashed access codes, login
 rate limiting, a published receipt list, and a backup of the database.

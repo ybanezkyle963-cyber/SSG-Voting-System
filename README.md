@@ -105,9 +105,21 @@ server/
   seed.js             roster, posts, candidates
   demo.js             casts random ballots for demos
 data/election.db      SQLite, created on first run
+client/               React + Vite + Tailwind interface over the same /api routes
+  src/lib/offline.ts  the route table implemented in the browser, for running the
+                      interface with no server present (a demo, not an election)
 ```
 
-Deliberately zero dependencies: Node 22's built-in `node:sqlite` and `node:http` do everything needed. Nothing to `npm install`, nothing that rots, and a panel can read the whole backend in one sitting.
+Deliberately zero dependencies on the server: Node 22's built-in `node:sqlite` and
+`node:http` do everything needed. Nothing to `npm install`, nothing that rots, and a
+panel can read the whole backend in one sitting.
+
+`client/` is the newer, richer interface — the same API, with the runoff rounds drawn
+out, the roster and the ballot box shown side by side, and the audit chain rendered so
+you can watch it break. The original `web/` interface still works and is served
+alongside the API at `http://localhost:4000`.
+
+See `client/README.md` for the front end and `DEPLOY.md` for publishing it.
 
 ### API
 
