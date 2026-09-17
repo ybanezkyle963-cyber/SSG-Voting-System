@@ -1,14 +1,18 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import type { RawReceipt } from '../lib/api'
 import { when } from '../lib/format'
+import { useRoute } from '../lib/router'
 import type { ReceiptLookup } from '../lib/types'
 import { useToast } from '../state/ToastContext'
 import { Alert, Button, Card, Empty, Field, Spinner, Tag } from '../components/ui'
 
 export function Verify() {
   const { notify } = useToast()
-  const [code, setCode] = useState('')
+  const route = useRoute()
+  // Scanning the stub's QR symbol lands here with `?receipt=...` in the hash,
+  // so the field starts filled in.
+  const [code, setCode] = useState(() => route.query.get('receipt')?.trim() ?? '')
   const [result, setResult] = useState<ReceiptLookup | null>(null)
   const [checked, setChecked] = useState('')
   const [busy, setBusy] = useState(false)
@@ -33,26 +37,42 @@ export function Verify() {
     }
   }, [])
 
-  const check = async (value: string) => {
-    const trimmed = value.trim()
-    if (!trimmed) return
-    setBusy(true)
-    setError('')
-    setResult(null)
-    try {
-      const found = await api.verify(trimmed)
-      setResult(found)
-      setChecked(trimmed)
-      notify(
-        found.found ? 'That ballot is in the sealed box.' : 'That code is not in the sealed box.',
-        found.found ? 'success' : 'error'
-      )
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'The check failed.')
-    } finally {
-      setBusy(false)
-    }
-  }
+  // Memoised so the effect below can depend on it honestly: `notify` comes from
+  // the toast provider, which holds it in a useCallback with no dependencies.
+  const check = useCallback(
+    async (value: string) => {
+      const trimmed = value.trim()
+      if (!trimmed) return
+      setBusy(true)
+      setError('')
+      setResult(null)
+      try {
+        const found = await api.verify(trimmed)
+        setResult(found)
+        setChecked(trimmed)
+        notify(
+          found.found ? 'That ballot is in the sealed box.' : 'That code is not in the sealed box.',
+          found.found ? 'success' : 'error'
+        )
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'The check failed.')
+      } finally {
+        setBusy(false)
+      }
+    },
+    [notify]
+  )
+
+  // Having scanned the symbol, the voter should get the answer, not a form to
+  // submit. The ref keeps this to once per visit, so it cannot fight a voter
+  // who is editing the field — however often the hash changes underneath.
+  const autoChecked = useRef(false)
+  useEffect(() => {
+    const fromScan = route.query.get('receipt')?.trim()
+    if (!fromScan || autoChecked.current) return
+    autoChecked.current = true
+    void check(fromScan)
+  }, [check, route])
 
   const filtered = (list ?? []).filter((r) =>
     filter.trim() ? r.receipt.toLowerCase().includes(filter.trim().toLowerCase()) : true
@@ -64,9 +84,10 @@ export function Verify() {
         <div>
           <h1 className="text-2xl">Check a receipt</h1>
           <p className="mt-1 max-w-prose font-sans text-sm text-ink-60">
-            Paste the receipt code from your stub. This tells you whether a ballot with exactly
-            those choices is still in the box. It cannot be reversed into your choices, which is
-            what makes it safe to show anyone.
+            Paste the receipt code from your stub, or scan the QR symbol printed on it and this
+            page arrives already filled in. The check tells you whether a ballot with exactly those
+            choices is still in the box. It cannot be reversed into your choices, which is what
+            makes it safe to show anyone.
           </p>
         </div>
 
@@ -75,7 +96,7 @@ export function Verify() {
             <div className="flex-1">
               <Field
                 label="Receipt code"
-                placeholder="paste the code from your stub"
+                placeholder="paste the code, or scan the stub"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 onKeyDown={(e) => {

@@ -5,6 +5,7 @@ import { copyText, when } from '../lib/format'
 import type { Ballot as Paper, Choices, Position, Receipt } from '../lib/types'
 import { useAuth } from '../state/AuthContext'
 import { useToast } from '../state/ToastContext'
+import { ReceiptQr } from '../components/ReceiptQr'
 import { Alert, Button, Card, Empty, Modal, Spinner, Tag } from '../components/ui'
 
 /* The stub is the one object a voter keeps, so it survives a reload. */
@@ -181,6 +182,18 @@ export function Ballot() {
                 {receipt?.receipt ?? 'Not shown on this device.'}
               </p>
             </div>
+
+            {/* Printed with the stub on purpose: the code is the part a voter
+                would otherwise have to retype on a phone. */}
+            {receipt ? (
+              <div className="border-t border-dashed border-rule pt-4 sm:col-span-2">
+                <ReceiptQr receipt={receipt.receipt} />
+                <p className="mt-2 font-sans text-[11px] text-ink-60">
+                  The scan carries your receipt code and nothing else — your choices cannot be read
+                  from the stub.
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {receipt ? (
@@ -197,7 +210,7 @@ export function Ballot() {
               <Button size="sm" onClick={() => window.print()}>
                 Print the stub
               </Button>
-              <Link to="/verify">
+              <Link to={`/verify?receipt=${encodeURIComponent(receipt.receipt)}`}>
                 <Button size="sm" variant="primary">
                   Check it in the count
                 </Button>
@@ -216,8 +229,9 @@ export function Ballot() {
           <Card title="What happens next">
             <ol className="space-y-2 font-sans text-sm text-ink/85">
               <li>
-                <strong className="text-ink">1.</strong> Paste the receipt into the checker any time
-                before certification to confirm your ballot is still in the box.
+                <strong className="text-ink">1.</strong> Scan the QR symbol above with a phone, or
+                paste the receipt code into the checker, any time before certification to confirm
+                your ballot is still in the box.
               </li>
               <li>
                 <strong className="text-ink">2.</strong> The committee dashboard reconciles the

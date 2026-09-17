@@ -162,8 +162,15 @@ oval), and mark up to 4 on the Year Level Representatives post.
 **C5.** Click **Review and seal** → **Seal my ballot** → **Yes, seal it**. You get a stub
 with a serial number and a receipt code.
 
-**C6.** Click **Check it in the count** and paste the receipt code. It should report
-that your ballot is in the count.
+**C6.** The stub carries a **QR symbol**. Scan it with your phone camera — the phone
+opens the checker with your code already filled in and the answer already showing. No
+phone to hand? **Check it in the count** does the same thing on this machine: the link
+carries the code, so the check runs the moment the page opens.
+
+The symbol encodes whatever address the page is being served from, so a stub printed
+from your Vercel URL points at your Vercel URL. One exception: opened straight from a
+file, there is no address a phone could reach, so the symbol carries the bare receipt
+code instead and the caption beside it says so.
 
 **C7.** Click **Sign out**, then sign in as the committee: `COMELEC-01` / `ADMIN01`.
 

@@ -46,7 +46,7 @@ The demo credential chips on the sign-in screen fill the form for you.
 |---|---|---|
 | `#/` | anyone | Sign in, plus what the system does and does not guarantee |
 | `#/ballot` | voter | Mark → review → seal, then the detachable stub with serial and receipt |
-| `#/verify` | anyone | Check a receipt, and read the full published receipt list |
+| `#/verify` | anyone | Check a receipt, and read the full published receipt list. `?receipt=…` pre-fills and runs the check, which is where a scanned stub lands |
 | `#/results` | public once published | Canvass report: every runoff round, the seat cut-off, abstentions |
 | `#/control` | committee, behind a code | Turnout, reconciliation, audit chain, open/close, publish |
 
@@ -79,13 +79,18 @@ src/
     tally.ts             instant runoff + approval, ported from server/tally.js
     router.tsx           ~60-line hash router
     format.ts            dates, hashes, plurals, clipboard
+    qr.ts                QR encoder, written out: byte mode, ECC L, versions 1-10
+    verifyLink.ts        the URL a scanned stub should open
   state/
     AuthContext.tsx      session, status, mode detection, the control gate
     ToastContext.tsx     transient messages, anchored top-right
   components/
     Layout.tsx           masthead, perforated strip, nav, mode banner
+    ReceiptQr.tsx        the scannable half of the stub
     ui.tsx               Button, Field, Card, Alert, Tag, Stat, BarRow, Modal, …
   pages/                 SignIn, Ballot, Verify, Results, Control
+scripts/
+  verify-qr.mjs          proves the encoder against a reference and a reader
 ```
 
 No runtime dependencies beyond React. No router library, no icon package, no state
@@ -98,7 +103,15 @@ server has no dependencies.
 npm run lint           # oxlint: 0 errors
 npx tsc -b             # type check
 npm run build          # production build
+npm run verify:qr      # the QR encoder, checked four ways
 ```
+
+The QR encoder is the one piece of this client that is not either React or a few
+lines of glue, so it is checked rather than trusted. `verify:qr` compares every module
+against the reference `qrcode` package for all eight masks, checks that version
+selection agrees with it, decodes each symbol with `jsqr` (an independent reader), and
+parses the drawn SVG path back into a matrix to confirm it is the same symbol. Those
+two packages are dev dependencies; nothing in the build depends on them.
 
 The seven remaining lint warnings are the scaffold's own convention hints, not
 defects: five `only-export-components` for context files that export their hook
@@ -115,6 +128,13 @@ and therefore touch state from an effect — the documented legitimate use of an
 - **The stub.** A perforated edge separates the ballot from a detachable stub holding
   serial, receipt and sealing time. It survives a reload, so a voter can still find it
   after closing the tab — the one object they keep.
+- **The scan.** A receipt is 32 hex characters; typing that from paper on a phone is
+  how you get a typo and a false alarm, so the stub carries a QR symbol pointing at the
+  checker with the code already in the query string. The encoder is written out in
+  `lib/qr.ts` rather than installed: a QR web service would send the receipt to a third
+  party, and a library would put a dependency in a project whose argument is that you
+  can read it in one sitting. Opened from a file there is no address a phone could
+  reach, so the symbol then carries the bare code and the caption says so.
 - **Keyboard and phone first.** Every control is reachable by tab with a visible focus
   ring, layouts work down to a phone, and `prefers-reduced-motion` is respected
   (the tear-off animation is the only motion in the app).
