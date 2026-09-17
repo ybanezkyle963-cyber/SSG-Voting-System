@@ -1,0 +1,171 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-paper text-ink font-serif antialiased;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(232, 179, 58, 0.07), transparent 45%),
+      radial-gradient(circle at 88% 0%, rgba(47, 93, 80, 0.08), transparent 40%);
+    background-attachment: fixed;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-pine ring-offset-2 ring-offset-paper;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply text-ink;
+  }
+}
+
+@layer components {
+  .card {
+    @apply border border-rule bg-white/70 backdrop-blur-sm;
+  }
+
+  .rule-top {
+    @apply border-t border-rule;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 border border-ink/25 px-4 py-2 text-sm
+      font-semibold uppercase tracking-[0.14em] transition
+      hover:border-ink/60 hover:bg-ink/[0.04] active:translate-y-px
+      disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent;
+  }
+
+  .btn-primary {
+    @apply border-pine bg-pine text-paper hover:border-pine hover:bg-pine/90 hover:text-paper;
+  }
+
+  .btn-seal {
+    @apply border-seal bg-seal text-paper hover:border-seal hover:bg-seal/90 hover:text-paper;
+  }
+
+  .btn-sm {
+    @apply px-3 py-1 text-[11px] tracking-[0.12em];
+  }
+
+  .field {
+    @apply w-full border border-rule bg-white px-3 py-2 font-sans text-base text-ink
+      placeholder:text-ink-60/60 focus:border-pine focus:outline-none;
+  }
+
+  .label {
+    @apply block font-sans text-xs font-semibold uppercase tracking-[0.16em] text-ink-60;
+  }
+
+  .tag {
+    @apply inline-flex items-center gap-1 border px-2 py-0.5 font-sans text-[11px]
+      font-semibold uppercase tracking-[0.12em];
+  }
+
+  .numeric {
+    font-variant-numeric: tabular-nums;
+    @apply font-sans;
+  }
+
+  /* The perforated edge that separates the ballot from its detachable stub. */
+  .perforation {
+    background-image: radial-gradient(circle, #c9d1c8 1.4px, transparent 1.5px);
+    background-size: 9px 9px;
+    background-repeat: repeat-x;
+    background-position: center;
+  }
+
+  .masthead-rule {
+    background-image: linear-gradient(90deg, #17211b 0 42px, transparent 42px),
+      linear-gradient(90deg, #17211b 0 42px, transparent 42px);
+    background-size: 100% 2px, 100% 2px;
+    background-repeat: no-repeat;
+    background-position: 0 0, 0 6px;
+  }
+
+  /* Shading an oval, the way a printed ballot is actually marked. */
+  .oval {
+    @apply flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 transition
+      duration-150;
+  }
+
+  .oval-idle {
+    @apply border-ink/35 bg-white;
+  }
+
+  .oval-ranked {
+    @apply border-gold bg-gold text-ink;
+  }
+
+  .oval-approved {
+    @apply border-gold bg-gold text-ink;
+  }
+}
+
+@layer utilities {
+  .tear-off {
+    animation: tear-off 620ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+
+  .seal-stamp {
+    animation: seal-stamp 380ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  }
+}
+
+@keyframes tear-off {
+  0% {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+  35% {
+    transform: translateX(4px) rotate(1.2deg);
+  }
+  100% {
+    transform: translateX(38px) rotate(4deg);
+    opacity: 0.92;
+  }
+}
+
+@keyframes seal-stamp {
+  0% {
+    transform: scale(1.6) rotate(-8deg);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1) rotate(-5deg);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .print-stub {
+    border: 1px dashed #17211b;
+    page-break-inside: avoid;
+  }
+}

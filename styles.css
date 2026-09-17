@@ -1,0 +1,274 @@
+/* ---------------------------------------------------------------- tokens
+   The palette comes from the object this thing replaces: a printed ballot.
+   Bond-paper green-white, ballot-ink near-black green, pine for anything
+   confirmed or counted, gold for the marks a voter makes, and one vermilion
+   reserved for a single irreversible act — sealing the ballot.            */
+
+:root {
+  --paper:  #f2f4f1;
+  --paper-2:#e7ebe6;
+  --ink:    #17211b;
+  --ink-60: #5b665f;
+  --rule:   #c9d1c8;
+  --pine:   #2f5d50;
+  --gold:   #e8b33a;
+  --seal:   #b3371f;
+
+  --serif: Charter, "Bitstream Charter", "Iowan Old Style", "Palatino Linotype",
+           Georgia, "Times New Roman", serif;
+
+  --col: 44rem;
+  --step: 0.75rem;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.55;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.sheet {
+  max-width: var(--col);
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--paper);
+  padding: 2rem 1.25rem 6rem;
+  border-left: 1px solid var(--rule);
+  border-right: 1px solid var(--rule);
+}
+
+@media (min-width: 46rem) { .sheet { padding: 3rem 2.5rem 6rem; } }
+
+/* ------------------------------------------------------------- typography */
+
+h1, h2, h3 { font-weight: 700; letter-spacing: -0.012em; margin: 0; }
+h1 { font-size: 2rem; line-height: 1.12; }
+h2 { font-size: 1.32rem; line-height: 1.2; }
+h3 { font-size: 1.02rem; }
+p  { margin: 0.6rem 0; max-width: 34em; }
+a  { color: var(--pine); }
+
+.lede { color: var(--ink-60); font-size: 1.03rem; }
+.fine { color: var(--ink-60); font-size: 0.86rem; line-height: 1.45; }
+.num  { font-weight: 700; font-size: 1.9rem; letter-spacing: -0.02em; }
+
+/* ----------------------------------------------------------- masthead/stub
+   The sign-in screen is the head of a ballot: title block on the left,
+   detachable stub on the right, joined by a perforation.                  */
+
+.masthead {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1.5px solid var(--ink);
+  margin-bottom: 2rem;
+}
+
+@media (min-width: 34rem) {
+  .masthead { grid-template-columns: 1fr 9.5rem; }
+}
+
+.masthead-body { padding: 1.1rem 1.15rem; }
+.masthead-body h1 { font-size: 1.62rem; }
+.masthead-body .lede { margin: 0.35rem 0 0; font-size: 0.95rem; }
+
+.stub {
+  border-top: 1.5px dashed var(--ink);
+  padding: 1.1rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  background: repeating-linear-gradient(
+    -45deg, transparent 0 7px, rgba(47, 93, 80, 0.05) 7px 14px);
+}
+
+@media (min-width: 34rem) {
+  .stub { border-top: 0; border-left: 1.5px dashed var(--ink); }
+}
+
+.stub-code {
+  font-size: 1.05rem;
+  font-weight: 700;
+  word-break: break-all;
+  line-height: 1.25;
+}
+
+.stub-label { font-size: 0.78rem; color: var(--ink-60); }
+
+/* --------------------------------------------------------------- controls */
+
+label { display: block; font-size: 0.9rem; margin-bottom: 0.3rem; }
+
+input[type="text"] {
+  width: 100%;
+  font: inherit;
+  padding: 0.62rem 0.7rem;
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--ink-60);
+  border-radius: 2px;
+}
+
+input[type="text"]:focus-visible,
+button:focus-visible,
+.pick:focus-visible {
+  outline: 2.5px solid var(--pine);
+  outline-offset: 2px;
+}
+
+.field { margin-bottom: 1rem; max-width: 22rem; }
+
+button {
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 2px;
+  border: 1.5px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.6rem 1.1rem;
+}
+
+button.ghost { background: transparent; color: var(--ink); }
+button.seal  { background: var(--seal); border-color: var(--seal); }
+button.quiet { background: transparent; border: 0; color: var(--pine); padding: 0.35rem 0; text-decoration: underline; }
+button[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+.row { display: flex; gap: 0.7rem; flex-wrap: wrap; align-items: center; }
+
+/* ----------------------------------------------------------------- ballot */
+
+.post { border-top: 1px solid var(--rule); padding: 1.6rem 0 0.4rem; }
+.post:first-of-type { border-top: 1.5px solid var(--ink); }
+
+.post-head { display: flex; justify-content: space-between; align-items: baseline; gap: 1rem; }
+.post-rule { font-size: 0.86rem; color: var(--ink-60); white-space: nowrap; }
+
+.pick {
+  display: grid;
+  grid-template-columns: 2.3rem 1fr;
+  gap: 0.85rem;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  color: inherit;
+  font-weight: 400;
+  padding: 0.85rem 0.2rem;
+  align-items: start;
+}
+
+.pick:hover .oval { border-color: var(--pine); }
+
+/* The oval is the paper ballot's shaded circle. Ranked posts print the rank
+   inside it; approval posts fill it solid. */
+.oval {
+  width: 2.3rem; height: 2.3rem;
+  border: 1.5px solid var(--ink-60);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--pine);
+  background: #fff;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.picked .oval { background: var(--pine); border-color: var(--pine); color: var(--gold); }
+.picked .cand-name { text-decoration: underline; text-decoration-color: var(--gold); text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+.cand-name { font-weight: 700; }
+.cand-meta { color: var(--ink-60); font-size: 0.88rem; }
+.cand-plat { font-size: 0.92rem; margin: 0.25rem 0 0; }
+.rank-tag { color: var(--pine); font-size: 0.84rem; font-weight: 700; }
+
+.abstained { color: var(--ink-60); font-size: 0.9rem; }
+
+/* ---------------------------------------------------------------- results */
+
+.bar-row { padding: 0.55rem 0; border-bottom: 1px solid var(--rule); }
+.bar-top { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.95rem; }
+.bar-track { position: relative; height: 0.85rem; background: var(--paper-2); margin-top: 0.3rem; }
+.bar-fill { height: 100%; background: var(--pine); }
+.bar-row.out .bar-fill { background: var(--rule); }
+.bar-row.out .bar-top { color: var(--ink-60); text-decoration: line-through; }
+.bar-row.win .bar-fill { background: var(--gold); }
+
+.majority-line { position: absolute; top: -0.3rem; bottom: -0.3rem; width: 1.5px; background: var(--seal); }
+
+.round { margin: 1.1rem 0 0; padding-left: 0.9rem; border-left: 3px solid var(--rule); }
+.round-label { font-size: 0.88rem; color: var(--ink-60); margin-bottom: 0.2rem; }
+
+.seat-cut { border-top: 1.5px dashed var(--seal); margin: 0.2rem 0; font-size: 0.8rem; color: var(--seal); padding-top: 0.2rem; }
+
+.won { background: var(--gold); padding: 0.05rem 0.3rem; font-weight: 700; }
+
+/* ------------------------------------------------------------- dashboards */
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr)); gap: 1.2rem; margin: 1.2rem 0 1.6rem; }
+.stat-label { font-size: 0.85rem; color: var(--ink-60); }
+
+.box { border: 1.5px solid var(--ink); padding: 1rem 1.1rem; margin: 1.2rem 0; }
+.box.good { border-color: var(--pine); }
+.box.bad { border-color: var(--seal); }
+
+.log { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+.log td { border-bottom: 1px solid var(--rule); padding: 0.4rem 0.5rem 0.4rem 0; vertical-align: top; }
+.log .hash { color: var(--ink-60); word-break: break-all; }
+
+/* ---------------------------------------------------------------- footers */
+
+.actionbar {
+  position: sticky;
+  bottom: 0;
+  margin: 2rem -1.25rem -6rem;
+  padding: 0.9rem 1.25rem calc(0.9rem + env(safe-area-inset-bottom));
+  background: var(--paper);
+  border-top: 1.5px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 46rem) { .actionbar { margin: 2rem -2.5rem -6rem; padding-left: 2.5rem; padding-right: 2.5rem; } }
+
+.toast {
+  position: fixed;
+  left: 50%; bottom: 1.2rem;
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 0.7rem 1rem;
+  font-size: 0.92rem;
+  max-width: 90vw;
+  z-index: 10;
+}
+
+.error { color: var(--seal); font-size: 0.92rem; }
+
+/* The one piece of motion in the app: the stub tearing off when a ballot is
+   sealed. It marks the moment the vote stops being editable. */
+@keyframes tear {
+  0%   { transform: translateY(-1.4rem) rotate(0deg); opacity: 0; }
+  60%  { transform: translateY(0.35rem) rotate(-1.4deg); opacity: 1; }
+  100% { transform: translateY(0) rotate(-0.6deg); opacity: 1; }
+}
+
+.torn { animation: tear 620ms cubic-bezier(.2,.9,.3,1.2) both; transform-origin: left top; }
+
+@media (prefers-reduced-motion: reduce) {
+  .torn { animation: none; }
+  * { transition: none !important; }
+}

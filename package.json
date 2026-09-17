@@ -1,0 +1,16 @@
+{
+  "name": "ssg-voting-system",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SSG election system: a dependency-free Node server plus a React front end that shows the roster, the ballot box and the audit chain reconciling.",
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm install --no-audit --no-fund && npm run build",
+    "lint": "cd client && npm run lint",
+    "typecheck": "cd client && npx tsc -b",
+    "preview": "cd client && npm run preview"
+  }
+}

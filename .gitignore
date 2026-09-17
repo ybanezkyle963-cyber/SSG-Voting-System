@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build output
+dist/
+build/
+client/dist/
+
+# Vercel and other local deploy tooling
+.vercel
+.freebuff/
+
+# The election database, created when the server runs (never commit ballots)
+data/*.db
+data/*.db-shm
+data/*.db-wal
+data/*.db-journal
+
+# Logs and editor / OS noise
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
