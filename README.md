@@ -8,14 +8,43 @@ Most school voting apps answer "trust us." This one answers with a roster that r
 
 ## Run it
 
-Needs Node 22.5 or newer. No `npm install` — there are no dependencies.
+Needs Node 22.5 or newer. The server has no dependencies at all; the React
+interface in `client/` has a few, so install those once:
+
+```bash
+cd client && npm install    # once
+cd .. && npm run dev        # starts the election server AND the interface
+```
+
+Then open **http://localhost:5173**.
+
+`npm run dev` starts both halves — the election server on :4000 and the Vite dev
+server that serves the interface and proxies `/api` to it — waits for the API to
+answer before the interface loads, and seeds the database if it is missing. It
+reuses anything already running, so it is safe to run twice. Ctrl+C stops both.
+Add `-- --port 4100 --client-port 4200` to move them.
+
+It exists because starting the two processes by hand has two traps, and both
+look like a broken system rather than a misconfiguration:
+
+- **The port.** `index.js` reads `process.env.PORT` before falling back to 4000,
+  and some shells export `PORT=0` — so a bare `node index.js` can bind to a random
+  port while the interface's proxy still points at 4000.
+- **The second process.** With only the server running, the interface falls back
+  to its in-browser engine and shows a gold *"Offline demo engine"* band. Every
+  screen still works, but each visitor is voting in their own browser.
+
+Running just the server, no client — the original `web/` interface at :4000:
 
 ```bash
 cd server
-node seed.js      # creates the database, 180 sample voters, 7 posts, 20 candidates
-node index.js     # serves the API and the site at http://localhost:4000
+npm run seed      # creates the database, 180 sample voters, 7 posts, 20 candidates
+PORT=4000 npm start   # API and the original site at http://localhost:4000
 node demo.js 140  # optional: casts random ballots so the results screen has data
 ```
+
+(`demo.js` talks to port 4000 by default and takes its target from `BASE`, not
+from `PORT` — pointing it at a server on another port needs `BASE=http://localhost:4100`.)
 
 Sign in with:
 
@@ -108,6 +137,7 @@ data/election.db      SQLite, created on first run
 client/               React + Vite + Tailwind interface over the same /api routes
   src/lib/offline.ts  the route table implemented in the browser, for running the
                       interface with no server present (a demo, not an election)
+scripts/dev.mjs       one command to start both halves, with the port pinned
 ```
 
 Deliberately zero dependencies on the server: Node 22's built-in `node:sqlite` and

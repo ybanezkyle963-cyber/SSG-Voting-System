@@ -220,12 +220,20 @@ commit produced it.
 **D3.** To work on it locally at any time:
 
 ```bash
-npm run dev        # from the project root, or: cd client && npm run dev
+cd client && npm install   # once
+cd .. && npm run dev       # starts the election server AND the interface
 ```
 
-Then open <http://localhost:5173>. Without a server running you get the offline engine,
-same as on Vercel. With the server running on port 4000, the client uses it instead and
-the gold band disappears.
+Then open <http://localhost:5173>. `scripts/dev.mjs` starts both halves, seeds the
+database if it is missing, waits for the API to answer before the interface loads, and
+pins the port the server and the proxy both use. It reuses whatever is already running,
+so it is safe to run twice, and Ctrl+C stops both. Move them with
+`npm run dev -- --port 4100 --client-port 4200`.
+
+Starting the halves by hand is the other way to do it — and the easy way to get the
+gold band by accident. `cd client && npm run dev` on its own gives you the offline
+engine, exactly as on Vercel: every screen works, but each visitor is voting in their
+own browser. Only the election server turns that URL into a shared election.
 
 ---
 
@@ -264,8 +272,9 @@ curl -s http://localhost:4000/api/status
 
 The original `web/` interface is served from the same origin, so opening
 <http://localhost:4000> gives you the plain interface straight from the server. To use
-the richer `client/` interface against this server, run its dev server — the proxy in
-`client/vite.config.ts` forwards `/api` to port 4000 — or serve `client/dist` from the
-same origin as the API in production. Put HTTPS in front of both. Before running anything real, work through the
+the richer `client/` interface against this server, run `npm run dev` from the project
+root — `scripts/dev.mjs` starts the server, pins its port and passes the same port to
+the proxy in `client/vite.config.ts` — or serve `client/dist` from the same origin as
+the API in production. Put HTTPS in front of both. Before running anything real, work through the
 *Before a real election* checklist in `README.md` — HTTPS, hashed access codes, login
 rate limiting, a published receipt list, and a backup of the database.

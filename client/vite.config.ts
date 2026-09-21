@@ -1,6 +1,14 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
+/*
+ * The election server's port. `scripts/dev.mjs` passes the port it started the
+ * server on, so `npm run dev --port 4100` keeps the proxy pointed at the right
+ * place instead of silently talking to 4000 (or to nothing at all, which drops
+ * the interface into its offline engine).
+ */
+const apiPort = process.env.SSG_API_PORT ?? '4000'
+
 export default defineConfig({
   plugins: [react()],
   define: {
@@ -21,7 +29,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:4000',
+        target: `http://localhost:${apiPort}`,
         changeOrigin: true,
       },
     },
