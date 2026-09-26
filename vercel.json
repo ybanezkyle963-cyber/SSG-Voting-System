@@ -1,6 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "$comment": "Static React client plus the NestJS API on one project, using the classic builds format: @vercel/node compiles api/index.ts (mounted at /api/*), @vercel/static-build builds client/ and serves its dist as the site root.",
   "builds": [
     {
       "src": "api/index.ts",
