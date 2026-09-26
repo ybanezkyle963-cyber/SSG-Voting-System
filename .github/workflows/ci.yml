@@ -1,9 +1,5 @@
 name: CI
 
-# Runs before Vercel deploys: a push that breaks the client build or the
-# election server shows up here as a red cross. (Making the check *required*
-# is a repository setting; Vercel deploys independently of this workflow.)
-
 on:
   push:
     branches: [main]
@@ -39,19 +35,52 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      # The QR encoder is hand-written, so its correctness is asserted, not
-      # assumed: matrix-identical to the reference library across 9 payloads
-      # and all 8 masks, and decodable back to its input by jsqr.
       - name: Verify the QR encoder
         run: npm run verify:qr
 
       - name: Build
         run: npm run build
 
-  server:
-    name: Server — full-election smoke test
+  api:
+    name: API — typecheck and build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: api/package-lock.json
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Typecheck and build
+        run: npm run build
+
+  smoke:
+    name: API — full-election smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [api]
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ssg_election
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
 
@@ -59,8 +88,18 @@ jobs:
         with:
           node-version: 24
 
-      # Boots the server on a throwaway SQLite database and runs an entire
-      # election over HTTP: login, validation, sealing, double-vote block,
-      # receipt verification, publish gating, tally sanity, audit chain.
+      - name: Install API dependencies
+        run: npm install --no-audit --no-fund
+        working-directory: api
+
+      - name: Build the API
+        run: npm run build
+        working-directory: api
+
       - name: Run a full election against a fresh database
-        run: node server/smoke-test.mjs
+        working-directory: api
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/ssg_election
+          SMOKE_VOTER: '2026-1000'
+          SMOKE_CODE: DEMO01
+        run: node ../scripts/smoke-test.mjs

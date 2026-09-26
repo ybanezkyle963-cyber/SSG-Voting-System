@@ -5,14 +5,8 @@ import { useAuth } from '../state/AuthContext'
 import { useToast } from '../state/ToastContext'
 import { Alert, Button, Card, Field, Spinner, Tag } from '../components/ui'
 
-const DEMO = [
-  { label: 'Voter', studentNo: '2026-1000', accessCode: 'DEMO01' },
-  { label: 'Voter 2', studentNo: '2026-1001', accessCode: 'DEMO02' },
-  { label: 'Committee', studentNo: 'COMELEC-01', accessCode: 'ADMIN01' }
-]
-
 export function SignIn() {
-  const { session, signIn, signOut, mode } = useAuth()
+  const { session, signIn, signOut } = useAuth()
   const { notify } = useToast()
   const [studentNo, setStudentNo] = useState('')
   const [accessCode, setAccessCode] = useState('')
@@ -119,33 +113,6 @@ export function SignIn() {
           </div>
         </form>
 
-        <div className="mt-6 max-w-md">
-          <p className="label">Demo credentials</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {DEMO.map((d) => (
-              <button
-                key={d.studentNo}
-                type="button"
-                onClick={() => {
-                  setStudentNo(d.studentNo)
-                  setAccessCode(d.accessCode)
-                  setError('')
-                }}
-                className="border border-rule bg-white/70 px-3 py-1.5 text-left font-sans text-xs hover:border-pine"
-              >
-                <span className="block font-semibold uppercase tracking-[0.12em] text-ink-60">
-                  {d.label}
-                </span>
-                <span className="numeric text-ink">
-                  {d.studentNo} · {d.accessCode}
-                </span>
-              </button>
-            ))}
-          </div>
-          <p className="mt-2 font-sans text-xs text-ink-60">
-            One tap fills the form. Tap "Sign in" after.
-          </p>
-        </div>
       </div>
 
       <aside className="space-y-3">
@@ -185,12 +152,6 @@ export function SignIn() {
           </p>
         </Card>
 
-        {mode === 'offline' ? (
-          <Alert tone="warn" title="Demo mode">
-            No server answered, so this browser is running the whole election system locally. Every
-            action works; nothing leaves this machine.
-          </Alert>
-        ) : null}
       </aside>
     </div>
   )

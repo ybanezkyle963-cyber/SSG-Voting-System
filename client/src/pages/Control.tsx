@@ -1,33 +1,17 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
 import { api } from '../lib/api'
-import { DEFAULT_CONTROL_CODE, tamperWithLog } from '../lib/offline'
 import { eventLabel, plural, shortHash, when } from '../lib/format'
 import { Link } from '../lib/router'
 import type { AuditReport } from '../lib/types'
 import { useAuth } from '../state/AuthContext'
 import { useToast } from '../state/ToastContext'
-import { Alert, Button, Card, Empty, Field, Modal, Spinner, Stat, Tag } from '../components/ui'
+import { Alert, Button, Card, Empty, Modal, Spinner, Stat, Tag } from '../components/ui'
 
-type Tab = 'dashboard' | 'audit' | 'settings'
+type Tab = 'dashboard' | 'audit'
 
 export function Control() {
-  const {
-    session,
-    mode,
-    status,
-    controlOpen,
-    unlockControl,
-    lockControl,
-    setElection,
-    signOutToOffline
-  } = useAuth()
+  const { session, status, setElection } = useAuth()
   const { notify } = useToast()
-
-  const [code, setCode] = useState('')
-  const [gateError, setGateError] = useState('')
-  const [gateBusy, setGateBusy] = useState(false)
-  const [attempts, setAttempts] = useState(0)
 
   const [tab, setTab] = useState<Tab>('dashboard')
   const [audit, setAudit] = useState<AuditReport | null>(null)
@@ -35,11 +19,8 @@ export function Control() {
   const [busy, setBusy] = useState(false)
   const [confirmClose, setConfirmClose] = useState(false)
 
-  const [newCode, setNewCode] = useState('')
-  const [rotating, setRotating] = useState(false)
-
   const loadAudit = useCallback(async () => {
-    if (!session || session.role !== 'committee' || !controlOpen) return
+    if (!session || session.role !== 'committee') return
     try {
       const next = await api.audit(session.token)
       setAudit(next)
@@ -47,32 +28,11 @@ export function Control() {
     } catch (err) {
       setAuditError(err instanceof Error ? err.message : 'The audit log could not be read.')
     }
-  }, [session, controlOpen])
+  }, [session])
 
   useEffect(() => {
     void loadAudit()
   }, [loadAudit])
-
-  const submitGate = async (e: FormEvent) => {
-    e.preventDefault()
-    setGateBusy(true)
-    setGateError('')
-    try {
-      const result = await unlockControl(code)
-      if (result === 'ok') {
-        setCode('')
-        setAttempts(0)
-        notify('Election control unlocked.', 'success')
-      } else {
-        setAttempts((n) => n + 1)
-        setGateError('That entry code is not recognised.')
-      }
-    } catch (err) {
-      setGateError(err instanceof Error ? err.message : 'The code could not be checked.')
-    } finally {
-      setGateBusy(false)
-    }
-  }
 
   /* ------------------------------------------------------------------- access */
 
@@ -81,8 +41,8 @@ export function Control() {
       <div className="mx-auto max-w-lg space-y-3">
         <Card title="Election control is for the committee" eyebrow="Restricted">
           <p className="font-sans text-sm text-ink/80">
-            Sign in with a committee account. A second entry code is required even then, so a
-            committee member who leaves a laptop unlocked cannot open the count.
+            Sign in with the committee account to open, close and publish the election, and to read
+            the audit log.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link to="/">
@@ -103,57 +63,6 @@ export function Control() {
         <Alert tone="error" title="Committee sign-in required">
           Your account is a voter account. Election control — opening, closing, publishing, and the
           audit log — is limited to committee members.
-        </Alert>
-      </div>
-    )
-  }
-
-  if (!controlOpen) {
-    return (
-      <div className="mx-auto max-w-lg space-y-4">
-        <Card title="Enter the election control code" eyebrow={`Signed in as ${session.name}`}>
-          <form onSubmit={submitGate} className="space-y-4">
-            <Field
-              label="Entry code"
-              type="password"
-              autoComplete="off"
-              placeholder="••••••••"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              hint="Held by the committee chair, separate from your sign-in."
-            />
-            {gateError ? <Alert tone="error">{gateError}</Alert> : null}
-            {attempts >= 3 ? (
-              <Alert tone="warn" title="Three failed attempts">
-                A real deployment would lock this account and require the chair to release it in
-                person.
-              </Alert>
-            ) : null}
-            <div className="flex flex-wrap items-center gap-3">
-              <Button type="submit" variant="seal" disabled={gateBusy || !code.trim()}>
-                {gateBusy ? 'Checking' : 'Unlock control'}
-              </Button>
-              <Link to="/results">
-                <Button>Back to results</Button>
-              </Link>
-            </div>
-          </form>
-
-          {mode === 'offline' ? (
-            <div className="mt-4 border-t border-rule pt-3">
-              <p className="font-sans text-xs text-ink-60">
-                Offline demo — the control code is{' '}
-                <span className="numeric font-semibold text-ink">{DEFAULT_CONTROL_CODE}</span>. Change
-                it under the settings tab.
-              </p>
-            </div>
-          ) : null}
-        </Card>
-
-        <Alert tone="info" title="Why a second code">
-          The dangerous actions here are irreversible: closing voting, publishing a count, and
-          reading the audit log. A code known only to the chair keeps that authority from travelling
-          with a shared committee login.
         </Alert>
       </div>
     )
@@ -193,37 +102,20 @@ export function Control() {
     }
   }
 
-  const rotate = async (e: FormEvent) => {
-    e.preventDefault()
-    setRotating(true)
-    try {
-      await api.rotateCode(session.token, newCode)
-      setNewCode('')
-      await loadAudit()
-      notify('Control code changed.', 'success')
-    } catch (err) {
-      notify(err instanceof Error ? err.message : 'The code could not be changed.', 'error')
-    } finally {
-      setRotating(false)
-    }
-  }
-
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl">Election control</h1>
-          <p className="mt-1 font-sans text-sm text-ink-60">
-            Signed in as {session.name} · gate unlocked for this browser session
-          </p>
+          <p className="mt-1 font-sans text-sm text-ink-60">Signed in as {session.name}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Tag tone={electionOpen ? 'pine' : 'seal'}>
             {electionOpen ? 'Voting open' : 'Voting closed'}
           </Tag>
           <Tag tone={published ? 'gold' : 'plain'}>{published ? 'Results public' : 'Results held'}</Tag>
-          <Button size="sm" onClick={lockControl}>
-            Re-lock gate
+          <Button size="sm" onClick={() => void loadAudit()}>
+            Refresh
           </Button>
         </div>
       </div>
@@ -232,8 +124,7 @@ export function Control() {
         {(
           [
             ['dashboard', 'Dashboard'],
-            ['audit', 'Audit log'],
-            ['settings', 'Demo settings']
+            ['audit', 'Audit log']
           ] as [Tab, string][]
         ).map(([key, label]) => (
           <button
@@ -345,26 +236,9 @@ export function Control() {
             <p className="font-sans text-xs text-ink-60">
               Newest first. Ballot entries record a serial and receipt only — never a student number.
             </p>
-            <div className="flex flex-wrap gap-2">
-              {mode === 'offline' ? (
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    const seq = tamperWithLog()
-                    void loadAudit()
-                    notify(
-                      seq ? `Entry #${seq} edited in the database. Watch the chain break.` : 'Nothing to edit yet.',
-                      'warn'
-                    )
-                  }}
-                >
-                  Simulate tampering
-                </Button>
-              ) : null}
-              <Button size="sm" onClick={() => void loadAudit()}>
-                Re-verify chain
-              </Button>
-            </div>
+            <Button size="sm" onClick={() => void loadAudit()}>
+              Re-verify chain
+            </Button>
           </div>
 
           {auditError ? <Alert tone="error">{auditError}</Alert> : null}
@@ -440,58 +314,6 @@ export function Control() {
                 </tbody>
               </table>
             </div>
-          )}
-        </div>
-      ) : null}
-
-      {tab === 'settings' ? (
-        <div className="space-y-5">
-          <Card title="Change the control code" eyebrow="Gate">
-            <p className="font-sans text-sm text-ink/80">
-              Everyone who needs the control panel should learn the code in person, not here. Six
-              characters minimum; letters, numbers and dashes only.
-            </p>
-            <form onSubmit={rotate} className="mt-3 max-w-sm space-y-3">
-              <Field
-                label="New entry code"
-                value={newCode}
-                onChange={(e) => setNewCode(e.target.value)}
-                placeholder="SSG-2026"
-                hint={mode === 'offline' ? `Demo default: ${DEFAULT_CONTROL_CODE}` : undefined}
-              />
-              <Button type="submit" variant="seal" disabled={rotating || newCode.trim().length < 6}>
-                {rotating ? 'Changing' : 'Change code'}
-              </Button>
-            </form>
-          </Card>
-
-          {mode === 'offline' ? (
-            <Card title="Reset the demo" eyebrow="Offline only">
-              <p className="font-sans text-sm text-ink/80">
-                Clears the local roster, every sealed ballot and the audit log, then reseeds the
-                same slate the server seeds — 180 voters, 7 posts, 19 candidates. The control code
-                returns to{' '}
-                <span className="numeric font-semibold">{DEFAULT_CONTROL_CODE}</span>.
-              </p>
-              <div className="mt-3">
-                <Button
-                  variant="seal"
-                  onClick={() => {
-                    signOutToOffline()
-                    notify('Demo data reset. Sign in again.', 'info')
-                  }}
-                >
-                  Reset everything
-                </Button>
-              </div>
-            </Card>
-          ) : (
-            <Alert tone="info" title="Server-side gate">
-              This deployment has no <span className="numeric">/api/admin/gate</span> route, so the
-              entry code is checked against the value compiled into this build
-              (<span className="numeric">VITE_CONTROL_CODE</span>). Add the route to the server to
-              move the check where it belongs.
-            </Alert>
           )}
         </div>
       ) : null}

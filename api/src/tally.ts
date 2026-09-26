@@ -1,25 +1,42 @@
 /**
- * Counting rules for the SSG election.
+ * Counting rules for the SSG election, ported verbatim from server/tally.js.
  *
- * Single-seat posts (President, VP, Secretary, Treasurer, Auditor, PIO) use
- * instant-runoff. A voter ranks as many candidates as they like. If nobody has
- * more than half the continuing ballots, the last-placed candidate is dropped
- * and those ballots move to their next surviving choice. This is what makes the
- * result "accurate": the winner is the one a majority prefers over the field,
- * not just whoever placed first in a split three-way race.
- *
- * Multi-seat posts (Representatives) use approval voting. A voter marks every
- * candidate they would be content to have in office, up to the number of seats,
- * and the highest approval totals fill the seats.
+ * Single-seat posts use instant-runoff: if nobody clears half, the last-placed
+ * candidate is dropped and those ballots move to their next surviving choice.
+ * Multi-seat posts use approval voting: mark everyone you would be content to
+ * see elected, up to the number of seats; highest totals fill the seats.
  *
  * Both functions are pure: same ballots in, same result out. Nothing here
  * touches the database, so the count can be re-run and re-checked by anyone.
  */
 
-/** @param {string[][]} rankedBallots each ballot is an ordered list of candidate ids */
-export function instantRunoff(rankedBallots, candidateIds) {
-  let continuing = new Set(candidateIds);
-  const rounds = [];
+export interface RoundCount {
+  candidateId: string;
+  votes: number;
+  share: number;
+}
+
+export interface Round {
+  round: number;
+  active: number;
+  exhausted: number;
+  majorityNeeded: number;
+  counts: RoundCount[];
+  eliminated: string[] | null;
+}
+
+export interface Outcome {
+  method: 'irv' | 'approval';
+  winners: string[];
+  tie: string[] | null;
+  rounds?: Round[];
+  standing?: RoundCount[];
+  seats?: number;
+}
+
+export function instantRunoff(rankedBallots: string[][], candidateIds: string[]): Outcome {
+  const continuing = new Set(candidateIds);
+  const rounds: Round[] = [];
   const ballots = rankedBallots.filter((b) => b.length > 0);
 
   while (true) {
@@ -29,7 +46,7 @@ export function instantRunoff(rankedBallots, candidateIds) {
     for (const ballot of ballots) {
       const top = ballot.find((id) => continuing.has(id));
       if (top === undefined) exhausted += 1;
-      else counts.set(top, counts.get(top) + 1);
+      else counts.set(top, (counts.get(top) ?? 0) + 1);
     }
 
     const active = ballots.length - exhausted;
@@ -37,7 +54,7 @@ export function instantRunoff(rankedBallots, candidateIds) {
     const [leader, leaderVotes] = standing[0];
     const majority = Math.floor(active / 2) + 1;
 
-    const round = {
+    const round: Round = {
       round: rounds.length + 1,
       active,
       exhausted,
@@ -53,7 +70,7 @@ export function instantRunoff(rankedBallots, candidateIds) {
     if (leaderVotes >= majority || continuing.size <= 2 || active === 0) {
       rounds.push(round);
       const runnerUp = standing[1];
-      const tied = runnerUp && runnerUp[1] === leaderVotes;
+      const tied = !!runnerUp && runnerUp[1] === leaderVotes;
       return {
         method: 'irv',
         winners: tied ? [] : [leader],
@@ -72,12 +89,11 @@ export function instantRunoff(rankedBallots, candidateIds) {
   }
 }
 
-/** @param {string[][]} approvalBallots each ballot is an unordered list of approved ids */
-export function approval(approvalBallots, candidateIds, seats) {
+export function approval(approvalBallots: string[][], candidateIds: string[], seats: number): Outcome {
   const counts = new Map(candidateIds.map((id) => [id, 0]));
   for (const ballot of approvalBallots) {
     for (const id of new Set(ballot)) {
-      if (counts.has(id)) counts.set(id, counts.get(id) + 1);
+      if (counts.has(id)) counts.set(id, (counts.get(id) ?? 0) + 1);
     }
   }
   const voters = approvalBallots.filter((b) => b.length > 0).length;

@@ -8,10 +8,9 @@
   },
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "dev:client": "cd client && npm run dev",
-    "seed": "cd server && node seed.js",
-    "demo": "cd server && node demo.js 140",
-    "build": "cd client && npm install --no-audit --no-fund && npm run build",
+    "build": "npm run build:api && npm run build:client",
+    "build:api": "cd api && npm install --no-audit --no-fund && npm run build",
+    "build:client": "cd client && npm install --no-audit --no-fund && npm run build",
     "lint": "cd client && npm run lint",
     "typecheck": "cd client && npx tsc -b",
     "preview": "cd client && npm run preview"

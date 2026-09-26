@@ -146,4 +146,3 @@ export interface ElectionState {
 /** A ballot is a map of position id -> chosen candidate ids (order = rank). */
 export type Choices = Record<string, string[]>
 
-export type ApiMode = 'live' | 'offline'

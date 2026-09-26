@@ -19,7 +19,7 @@ const NAV: NavItem[] = [
 
 export function Layout({ children }: { children: ReactNode }) {
   const { path } = useRoute()
-  const { session, status, mode, signOut } = useAuth()
+  const { session, status, signOut } = useAuth()
 
   const items = NAV.filter((item) => {
     if (item.committeeOnly) return session?.role === 'committee'
@@ -107,16 +107,6 @@ export function Layout({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      {mode === 'offline' ? (
-        <div className="no-print border-b border-gold bg-gold/15">
-          <p className="mx-auto w-full max-w-5xl px-4 py-2 font-sans text-xs text-ink sm:px-6">
-            <strong className="font-semibold">Offline demo engine.</strong> No election server
-            answered on this origin, so ballots, the audit chain and the count are running inside
-            this browser and stored locally. Start the server on port 4000 to go live.
-          </p>
-        </div>
-      ) : null}
-
       <main id="main" className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         {children}
       </main>
@@ -128,7 +118,7 @@ export function Layout({ children }: { children: ReactNode }) {
             Nothing in this system links a student number to a ballot.
           </p>
           <p className="mt-1">
-            {mode === 'live' ? 'Connected to the election server.' : 'Running offline in this browser.'}
+            Connected to the election server.
             {__BUILD_COMMIT__ ? (
               <>
                 {' '}
