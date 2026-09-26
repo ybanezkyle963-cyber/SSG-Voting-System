@@ -23,7 +23,7 @@
       "dest": "/client/$1"
     },
     {
-      "src": "/(favicon\.svg|icons\.svg)",
+      "src": "/(favicon[.]svg|icons[.]svg)",
       "dest": "/client/$1"
     },
     {
