@@ -1,11 +1,17 @@
 import { DatabaseSync } from 'node:sqlite';
 import { createHash, randomBytes } from 'node:crypto';
 import { mkdirSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const dataDir = join(here, '..', 'data');
+/*
+ * SSG_DATA_DIR moves the database (used by tests so they never touch a real
+ * election); unset, it stays at the project root's data/ as always.
+ */
+const dataDir = process.env.SSG_DATA_DIR
+  ? resolve(process.env.SSG_DATA_DIR)
+  : join(here, '..', 'data');
 mkdirSync(dataDir, { recursive: true });
 
 export const db = new DatabaseSync(join(dataDir, 'election.db'));
