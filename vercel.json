@@ -1,17 +1,31 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "npm run build",
-  "outputDirectory": "client/dist",
-  "functions": {
-    "api/index.ts": {
-      "memory": 512,
-      "maxDuration": 15
-    }
-  },
-  "rewrites": [
+  "$comment": "Static React client plus the NestJS API on one project, using the classic builds format: @vercel/node compiles api/index.ts (mounted at /api/*), @vercel/static-build builds client/ and serves its dist as the site root.",
+  "builds": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api"
+      "src": "api/index.ts",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/index.ts"
+    },
+    {
+      "src": "/(assets/.*)",
+      "dest": "/client/dist/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/client/dist/index.html"
     }
   ]
 }
